@@ -7,7 +7,7 @@ const files = readdirSync(dir)
   .sort()
   .map((f) => ({
     name: f.replace(".md", ""),
-    url: `/data/${f}`,
+    url: `data/${f}`,
   }));
 
 writeFileSync("static/wordpacks.json", JSON.stringify(files, null, 2));

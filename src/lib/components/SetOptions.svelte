@@ -73,7 +73,7 @@
     packError = "";
     packLoading = true;
     try {
-      const res = await fetch(url);
+      const res = await fetch("./" + url);
       if (!res.ok) throw new Error(`Could not fetch pack (${res.status})`);
       const markdown = await res.text();
       const entries = parseWords(markdown);
