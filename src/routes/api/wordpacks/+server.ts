@@ -1,17 +1,11 @@
-import { json } from '@sveltejs/kit';
-import { readdirSync } from 'fs';
-import { resolve } from 'path';
+import { json } from "@sveltejs/kit";
 
-export function GET() {
+export const prerender = false;
+
+export async function GET() {
   try {
-    const dir = resolve('static/data');
-    const files = readdirSync(dir)
-      .filter((f: string) => f.endsWith('.md'))
-      .sort()
-      .map((f: string) => ({
-        name: f.replace('.md', ''),
-        url: `/data/${f}`,
-      }));
+    const response = await fetch("/wordpacks.json");
+    const files = await response.json();
     return json(files);
   } catch {
     return json([]);
