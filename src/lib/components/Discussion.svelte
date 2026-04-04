@@ -9,9 +9,16 @@
       <h2 class="text-3xl font-black">Discussion</h2>
       <p class="text-zinc-400 mt-2 text-base leading-relaxed">
         Take turns giving a one-word clue about the secret word.<br />
-        The imposter is trying to blend in!
+        The trickster is trying to blend in!
       </p>
     </div>
+
+    {#if game.startingPlayer}
+      <div class="bg-indigo-950 border border-indigo-800 rounded-2xl p-5 text-center">
+        <p class="text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-1">Start with</p>
+        <p class="text-2xl font-black text-white">{game.startingPlayer.name}</p>
+      </div>
+    {/if}
 
     <div class="bg-zinc-900 rounded-2xl p-5 flex flex-col gap-3">
       <p class="text-zinc-400 text-sm font-semibold uppercase tracking-widest">Tips</p>
@@ -40,11 +47,20 @@
       </div>
     </div>
 
-    <button
-      onclick={() => game.startVoting()}
-      class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all text-white font-bold text-xl py-5 rounded-2xl"
-    >
-      Start Voting
-    </button>
+    {#if game.settings.votingEnabled}
+      <button
+        onclick={() => game.startVoting()}
+        class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all text-white font-bold text-xl py-5 rounded-2xl"
+      >
+        Start Voting
+      </button>
+    {:else}
+      <button
+        onclick={() => game.revealTrickster()}
+        class="w-full bg-rose-700 hover:bg-rose-600 active:scale-95 transition-all text-white font-bold text-xl py-5 rounded-2xl"
+      >
+        Reveal Trickster
+      </button>
+    {/if}
   </div>
 </div>

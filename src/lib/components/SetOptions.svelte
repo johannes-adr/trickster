@@ -7,6 +7,7 @@
   import { getCookie, setCookie } from "$lib/cookies";
 
   let hintsEnabled = $state(game.settings.hintsEnabled);
+  let votingEnabled = $state(game.settings.votingEnabled);
   let imposterCount = $state(game.settings.imposterCount);
 
   const maxImposters = Math.max(1, game.settings.playerCount - 1);
@@ -126,7 +127,7 @@
 
   function handleStart() {
     setCookie("imposter_wordpack_url", activeUrl);
-    game.confirmOptions(hintsEnabled, imposterCount, filteredEntries);
+    game.confirmOptions(hintsEnabled, imposterCount, filteredEntries, votingEnabled);
   }
 </script>
 
@@ -249,7 +250,7 @@
         <div>
           <p class="font-semibold text-lg">Show hints</p>
           <p class="text-zinc-400 text-sm mt-0.5">
-            Imposter gets a similar decoy word
+            Trickster gets a similar decoy word
           </p>
         </div>
         <button
@@ -262,18 +263,45 @@
           aria-label="Toggle hints"
         >
           <span
-            class="absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-transform {hintsEnabled
+            class="absolute top-1 left-0 w-6 h-6 rounded-full bg-white shadow transition-transform {hintsEnabled
               ? 'translate-x-7'
               : 'translate-x-1'}"
           ></span>
         </button>
       </div>
 
-      <!-- Imposter count -->
+      <!-- Voting toggle -->
+      <div
+        class="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between"
+      >
+        <div>
+          <p class="font-semibold text-lg">Voting</p>
+          <p class="text-zinc-400 text-sm mt-0.5">
+            {votingEnabled ? 'Vote to find the trickster' : 'Instantly reveal the trickster'}
+          </p>
+        </div>
+        <button
+          onclick={() => (votingEnabled = !votingEnabled)}
+          class="relative w-14 h-8 rounded-full transition-colors {votingEnabled
+            ? 'bg-indigo-600'
+            : 'bg-zinc-700'}"
+          role="switch"
+          aria-checked={votingEnabled}
+          aria-label="Toggle voting"
+        >
+          <span
+            class="absolute top-1 left-0 w-6 h-6 rounded-full bg-white shadow transition-transform {votingEnabled
+              ? 'translate-x-7'
+              : 'translate-x-1'}"
+          ></span>
+        </button>
+      </div>
+
+      <!-- Trickster count -->
       <div class="bg-zinc-900 rounded-2xl p-5">
-        <p class="font-semibold text-lg">Imposters</p>
+        <p class="font-semibold text-lg">Tricksters</p>
         <p class="text-zinc-400 text-sm mt-0.5 mb-4">
-          How many imposters in the round
+          How many tricksters in the round
         </p>
         <div class="flex items-center justify-between">
           <button

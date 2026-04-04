@@ -20,6 +20,7 @@ export interface Settings {
   playerCount: number;
   hintsEnabled: boolean;
   imposterCount: number;
+  votingEnabled: boolean;
 }
 
 export interface WordEntry {

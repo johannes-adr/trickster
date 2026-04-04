@@ -8,6 +8,7 @@ class Game {
     playerCount: 4,
     hintsEnabled: true,
     imposterCount: 1,
+    votingEnabled: true,
   });
 
   players = $state<Player[]>([]);
@@ -16,6 +17,7 @@ class Game {
   voterIndex = $state(0);
   votes = $state<Record<number, number>>({});
   wordEntries = $state<WordEntry[]>([]);
+  startingPlayer = $state<Player | null>(null);
 
   get currentRevealPlayer(): Player | undefined {
     return this.players[this.revealIndex];
@@ -74,10 +76,11 @@ class Game {
     this.state = 'SET_OPTIONS';
   }
 
-  confirmOptions(hintsEnabled: boolean, imposterCount: number, entries: WordEntry[]) {
+  confirmOptions(hintsEnabled: boolean, imposterCount: number, entries: WordEntry[], votingEnabled: boolean) {
     const max = Math.max(1, this.settings.playerCount - 1);
     this.settings.hintsEnabled = hintsEnabled;
     this.settings.imposterCount = Math.min(Math.max(1, imposterCount), max);
+    this.settings.votingEnabled = votingEnabled;
     this.wordEntries = entries;
     this._generateAndStart();
   }
@@ -100,8 +103,13 @@ class Game {
       category: entry.category,
     };
 
+    this.startingPlayer = this.players[Math.floor(Math.random() * this.players.length)];
     this.revealIndex = 0;
     this.state = 'PASS_AROUND';
+  }
+
+  revealTrickster() {
+    this.state = 'RESULTS';
   }
 
   advanceReveal() {
@@ -141,6 +149,7 @@ class Game {
     this.votes = {};
     this.revealIndex = 0;
     this.voterIndex = 0;
+    this.startingPlayer = null;
   }
 
   goHome() {
@@ -150,7 +159,8 @@ class Game {
     this.votes = {};
     this.revealIndex = 0;
     this.voterIndex = 0;
-    this.settings = { playerCount: 4, hintsEnabled: true, imposterCount: 1 };
+    this.startingPlayer = null;
+    this.settings = { playerCount: 4, hintsEnabled: true, imposterCount: 1, votingEnabled: true };
   }
 }
 
