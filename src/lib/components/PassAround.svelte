@@ -88,9 +88,15 @@
           </p>
           <h2 class="text-4xl font-black text-rose-400">You are the</h2>
           <h2 class="text-5xl font-black text-white mt-1">IMPOSTER</h2>
+          {#if game.settings.hintsEnabled && game.round?.hint}
+            <p class="text-rose-300 text-sm mt-5 mb-1 uppercase tracking-widest font-semibold">
+              Your decoy word
+            </p>
+            <p class="text-3xl font-black text-rose-200">{game.round.hint}</p>
+          {/if}
         </div>
-        <p class="text-rose-300 text-base">
-          Blend in — don't let them catch you!
+        <p class="text-rose-400 text-sm">
+          Use your decoy word to blend in!
         </p>
         <button
           onclick={hideAndPass}
@@ -113,11 +119,6 @@
             {game.round?.category}
           </p>
           <h2 class="text-5xl font-black text-white">{game.round?.secretWord}</h2>
-          {#if game.settings.hintsEnabled && game.round?.hint}
-            <p class="text-emerald-300 text-base mt-4 italic">
-              "{game.round.hint}"
-            </p>
-          {/if}
         </div>
         <p class="text-emerald-400 text-sm">
           Remember the word — don't say it out loud!

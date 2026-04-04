@@ -1,8 +1,5 @@
-import { parseWords, pickRandom, shuffleArray } from './parser';
-import { WORDS_MARKDOWN } from './words';
-import type { GameState, Player, Settings, Round } from './types';
-
-const ALL_WORDS = parseWords(WORDS_MARKDOWN);
+import { pickRandom, shuffleArray } from './parser';
+import type { GameState, Player, Settings, Round, WordEntry } from './types';
 
 class Game {
   state = $state<GameState>('HOME');
@@ -18,6 +15,7 @@ class Game {
   revealIndex = $state(0);
   voterIndex = $state(0);
   votes = $state<Record<number, number>>({});
+  wordEntries = $state<WordEntry[]>([]);
 
   get currentRevealPlayer(): Player | undefined {
     return this.players[this.revealIndex];
@@ -76,15 +74,16 @@ class Game {
     this.state = 'SET_OPTIONS';
   }
 
-  confirmOptions(hintsEnabled: boolean, imposterCount: number) {
+  confirmOptions(hintsEnabled: boolean, imposterCount: number, entries: WordEntry[]) {
     const max = Math.max(1, this.settings.playerCount - 1);
     this.settings.hintsEnabled = hintsEnabled;
     this.settings.imposterCount = Math.min(Math.max(1, imposterCount), max);
+    this.wordEntries = entries;
     this._generateAndStart();
   }
 
   private _generateAndStart() {
-    const entry = pickRandom(ALL_WORDS);
+    const entry = pickRandom(this.wordEntries);
     const shuffled = shuffleArray([...this.players]);
     const imposterSet = new Set(
       shuffled.slice(0, this.settings.imposterCount).map((p) => p.id)

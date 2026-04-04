@@ -1,9 +1,25 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { game } from '$lib/game.svelte';
+  import { getCookie, setCookie } from '$lib/cookies';
+
+  const COOKIE_KEY = 'imposter_player_names';
 
   let names = $state<string[]>(
     Array.from({ length: game.settings.playerCount }, () => '')
   );
+
+  onMount(() => {
+    const saved = getCookie(COOKIE_KEY);
+    if (saved) {
+      try {
+        const parsed: string[] = JSON.parse(saved);
+        names = Array.from({ length: game.settings.playerCount }, (_, i) => parsed[i] ?? '');
+      } catch {
+        // ignore malformed cookie
+      }
+    }
+  });
 
   let hasDuplicates = $derived(
     (() => {
@@ -14,11 +30,12 @@
 
   function handleSubmit() {
     if (hasDuplicates) return;
+    setCookie(COOKIE_KEY, JSON.stringify(names));
     game.confirmPlayerNames(names);
   }
 </script>
 
-<div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6">
+<div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6 overflow-y-auto">
   <div class="w-full max-w-sm mx-auto flex flex-col gap-6 py-8">
     <div>
       <button

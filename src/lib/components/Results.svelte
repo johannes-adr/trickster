@@ -18,7 +18,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6">
+<div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6 overflow-y-auto">
   <div class="w-full max-w-sm mx-auto flex flex-col gap-6 py-8">
     <!-- Win/Loss banner -->
     <div
