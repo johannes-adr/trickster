@@ -46,7 +46,7 @@
   );
 
   onMount(async () => {
-    const res = await fetch("/api/wordpacks");
+    const res = await fetch("./wordpacks.json");
     const data: Pack[] = await res.json();
     packs = data;
 
