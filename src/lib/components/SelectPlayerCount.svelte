@@ -1,5 +1,7 @@
 <script lang="ts">
   import { game } from '$lib/game.svelte';
+  import { scale } from 'svelte/transition';
+  import { backOut } from 'svelte/easing';
 
   const MIN = 3;
   const MAX = 10;
@@ -13,7 +15,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
+<div class="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 pb-safe">
   <div class="w-full max-w-sm flex flex-col gap-10">
     <div>
       <button
@@ -35,7 +37,16 @@
         −
       </button>
 
-      <span class="text-6xl font-black tabular-nums">{game.settings.playerCount}</span>
+      <div class="w-24 flex items-center justify-center overflow-hidden">
+        {#key game.settings.playerCount}
+          <span
+            in:scale={{ start: 0.6, duration: 280, easing: backOut }}
+            class="text-6xl font-black tabular-nums block"
+          >
+            {game.settings.playerCount}
+          </span>
+        {/key}
+      </div>
 
       <button
         onclick={increment}

@@ -2,11 +2,26 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="text-scale" content="scale" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="theme-color" content="#09090b" />
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
+		<script>
+			// Prevent pinch-to-zoom on iOS (ignores user-scalable=no since iOS 10)
+			document.addEventListener('touchmove', function (e) {
+				if (e.touches.length > 1) e.preventDefault();
+			}, { passive: false });
+			// Prevent double-tap zoom
+			let lastTap = 0;
+			document.addEventListener('touchend', function (e) {
+				const now = Date.now();
+				if (now - lastTap < 300) e.preventDefault();
+				lastTap = now;
+			}, { passive: false });
+		</script>
 	</body>
 </html>
