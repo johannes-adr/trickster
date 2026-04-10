@@ -83,28 +83,28 @@
         <!-- Role reveal screen -->
         {#if player.role === 'imposter'}
           <div
-            class="w-full max-w-sm flex flex-col items-center gap-6 text-center bg-rose-950 rounded-3xl p-8 border border-rose-800"
+            class="w-full max-w-sm flex flex-col items-center gap-6 text-center bg-zinc-900 rounded-3xl p-8 border border-zinc-700"
           >
             <div class="text-6xl">🎭</div>
             <div>
-              <p class="text-rose-300 text-sm font-semibold uppercase tracking-widest mb-2">
+              <p class="text-zinc-400 text-sm font-semibold uppercase tracking-widest mb-2">
                 Your role
               </p>
-              <h2 class="text-4xl font-black text-rose-400">You are the</h2>
+              <h2 class="text-4xl font-black text-zinc-300">You are the</h2>
               <h2 class="text-5xl font-black text-white mt-1">TRICKSTER</h2>
               {#if game.settings.hintsEnabled && game.round?.hint}
-                <p class="text-rose-300 text-sm mt-5 mb-1 uppercase tracking-widest font-semibold">
+                <p class="text-zinc-400 text-sm mt-5 mb-1 uppercase tracking-widest font-semibold">
                   Your decoy word
                 </p>
-                <p class="text-3xl font-black text-rose-200">{game.round.hint}</p>
+                <p class="text-3xl font-black text-zinc-200">{game.round.hint}</p>
               {/if}
             </div>
-            <p class="text-rose-400 text-sm">
+            <p class="text-zinc-400 text-sm">
               Use your decoy word to blend in!
             </p>
             <button
               onclick={hideAndPass}
-              class="w-full bg-rose-700 hover:bg-rose-600 active:scale-95 transition-all text-white font-bold text-lg py-4 rounded-2xl mt-2"
+              class="w-full bg-zinc-700 hover:bg-zinc-600 active:scale-95 transition-all text-white font-bold text-lg py-4 rounded-2xl mt-2"
             >
               Hide & Pass →
             </button>
@@ -112,24 +112,24 @@
 
         {:else}
           <div
-            class="w-full max-w-sm flex flex-col items-center gap-6 text-center bg-emerald-950 rounded-3xl p-8 border border-emerald-800"
+            class="w-full max-w-sm flex flex-col items-center gap-6 text-center bg-zinc-900 rounded-3xl p-8 border border-zinc-700"
           >
             <div class="text-6xl">🔤</div>
             <div>
-              <p class="text-emerald-300 text-sm font-semibold uppercase tracking-widest mb-2">
+              <p class="text-zinc-400 text-sm font-semibold uppercase tracking-widest mb-2">
                 Your role — Civilian
               </p>
-              <p class="text-emerald-300 text-lg mb-1">
+              <p class="text-zinc-400 text-lg mb-1">
                 {game.round?.category}
               </p>
               <h2 class="text-5xl font-black text-white">{game.round?.secretWord}</h2>
             </div>
-            <p class="text-emerald-400 text-sm">
+            <p class="text-zinc-400 text-sm">
               Remember the word — don't say it out loud!
             </p>
             <button
               onclick={hideAndPass}
-              class="w-full bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition-all text-white font-bold text-lg py-4 rounded-2xl mt-2"
+              class="w-full bg-zinc-700 hover:bg-zinc-600 active:scale-95 transition-all text-white font-bold text-lg py-4 rounded-2xl mt-2"
             >
               Hide & Pass →
             </button>
