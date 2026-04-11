@@ -36,7 +36,7 @@
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6 overflow-y-auto pb-safe-scroll">
-  <div class="w-full max-w-sm mx-auto flex flex-col gap-6 py-8">
+  <div class="w-full max-w-md mx-auto flex flex-col gap-6 py-8">
     <div>
       <button
         onclick={() => (game.state = 'SELECT_PLAYER_COUNT')}
@@ -67,7 +67,7 @@
     </div>
 
     {#if hasDuplicates}
-      <p class="text-rose-400 text-sm font-medium">
+      <p class="text-[#8a5252] text-sm font-medium">
         ⚠️ Player names must be unique
       </p>
     {/if}

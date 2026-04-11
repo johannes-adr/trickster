@@ -3,7 +3,7 @@
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
-  <div class="w-full max-w-sm flex flex-col gap-8">
+  <div class="w-full max-w-md flex flex-col gap-8">
     <div class="text-center">
       <div class="text-5xl mb-4">🗣️</div>
       <h2 class="text-3xl font-black">Discussion</h2>
@@ -36,13 +36,15 @@
       </div>
     </div>
 
-    <div class="bg-zinc-900 rounded-2xl p-4">
-      <p class="text-zinc-400 text-xs font-semibold uppercase tracking-widest mb-2">Players</p>
-      <div class="flex flex-wrap gap-2">
-        {#each game.players as player (player.id)}
-          <span class="bg-zinc-800 text-zinc-200 rounded-lg px-3 py-1.5 text-sm font-medium">
-            {player.name}
-          </span>
+    <!-- Suspect grid -->
+    <div class="flex flex-col gap-3">
+      <p class="text-zinc-400 text-xs font-semibold uppercase tracking-widest">Players</p>
+      <div class="grid grid-cols-2 gap-2">
+        {#each game.players as player, i (player.id)}
+          <div class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-2.5">
+            <span class="text-zinc-600 text-xs font-bold w-4 shrink-0">{i + 1}</span>
+            <span class="text-zinc-200 font-medium text-sm truncate">{player.name}</span>
+          </div>
         {/each}
       </div>
     </div>
@@ -57,7 +59,7 @@
     {:else}
       <button
         onclick={() => game.revealTrickster()}
-        class="w-full bg-rose-700 hover:bg-rose-600 active:scale-95 transition-all text-white font-bold text-xl py-5 rounded-2xl"
+        class="w-full bg-[#2a1010] hover:bg-[#351515] active:scale-95 transition-all text-white font-bold text-xl py-5 rounded-2xl"
       >
         Reveal Trickster
       </button>

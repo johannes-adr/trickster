@@ -16,7 +16,7 @@
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 pb-safe">
-  <div class="w-full max-w-sm flex flex-col gap-10">
+  <div class="w-full max-w-md flex flex-col gap-10">
     <div>
       <button
         onclick={() => game.goHome()}
