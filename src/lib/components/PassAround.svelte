@@ -82,6 +82,8 @@
       {:else if phase === 'revealed' && player}
         <!-- Role reveal screen -->
         {#if player.role === 'imposter'}
+          {@const isStartingPlayer = game.startingPlayer?.id === player.id}
+          {@const showHint = game.round?.hint && (game.settings.hintsEnabled || (game.settings.startingPlayerMode === 'trickster-hint' && isStartingPlayer))}
           <div
             class="w-full max-w-sm flex flex-col items-center gap-6 text-center bg-zinc-900 rounded-3xl p-8 border border-zinc-700"
           >
@@ -92,15 +94,18 @@
               </p>
               <h2 class="text-4xl font-black text-zinc-300">You are the</h2>
               <h2 class="text-5xl font-black text-white mt-1">TRICKSTER</h2>
-              {#if game.settings.hintsEnabled && game.round?.hint}
+              {#if showHint}
                 <p class="text-zinc-400 text-sm mt-5 mb-1 uppercase tracking-widest font-semibold">
                   Your decoy word
                 </p>
-                <p class="text-3xl font-black text-zinc-200">{game.round.hint}</p>
+                <p class="text-3xl font-black text-zinc-200">{game.round?.hint}</p>
+                {#if !game.settings.hintsEnabled && isStartingPlayer}
+                  <p class="text-zinc-500 text-xs mt-2">Hint granted because you start the round</p>
+                {/if}
               {/if}
             </div>
             <p class="text-zinc-400 text-sm">
-              Use your decoy word to blend in!
+              {showHint ? 'Use your decoy word to blend in!' : 'Try to figure out the secret word!'}
             </p>
             <button
               onclick={hideAndPass}

@@ -3,12 +3,15 @@
   import { SvelteSet } from "svelte/reactivity";
   import { game } from "$lib/game.svelte";
   import { parseWords } from "$lib/parser";
-  import type { WordEntry } from "$lib/types";
+  import type { WordEntry, StartingPlayerMode } from "$lib/types";
   import { getCookie, setCookie } from "$lib/cookies";
 
   let hintsEnabled = $state(game.settings.hintsEnabled);
   let votingEnabled = $state(game.settings.votingEnabled);
   let imposterCount = $state(game.settings.imposterCount);
+  let tricksterVarianceProbability = $state(game.settings.tricksterVarianceProbability);
+  let startingPlayerMode = $state<StartingPlayerMode>(game.settings.startingPlayerMode);
+  let tricksterStartWeight = $state(game.settings.tricksterStartWeight);
 
   const maxImposters = Math.max(1, game.settings.playerCount - 1);
 
@@ -127,7 +130,7 @@
 
   function handleStart() {
     setCookie("imposter_wordpack_url", activeUrl);
-    game.confirmOptions(hintsEnabled, imposterCount, filteredEntries, votingEnabled);
+    game.confirmOptions(hintsEnabled, imposterCount, filteredEntries, votingEnabled, tricksterVarianceProbability, startingPlayerMode, tricksterStartWeight);
   }
 </script>
 
@@ -320,6 +323,78 @@
             +
           </button>
         </div>
+      </div>
+
+      <!-- Trickster variance -->
+      <div class="bg-zinc-900 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-1">
+          <p class="font-semibold text-lg">Trickster variance</p>
+          <span class="text-indigo-400 font-bold tabular-nums">{tricksterVarianceProbability}%</span>
+        </div>
+        <p class="text-zinc-400 text-sm mb-4">
+          Chance the trickster count is re-rolled randomly (0 to everyone)
+        </p>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          bind:value={tricksterVarianceProbability}
+          class="w-full accent-indigo-500"
+        />
+        <div class="flex justify-between text-zinc-600 text-xs mt-1">
+          <span>Off</span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <!-- Starting player mode -->
+      <div class="bg-zinc-900 rounded-2xl p-5 flex flex-col gap-3">
+        <p class="font-semibold text-lg">Starting player</p>
+        <div class="flex flex-col gap-2">
+          <button
+            onclick={() => (startingPlayerMode = 'uniform')}
+            class="flex flex-col items-start py-3 px-4 rounded-xl text-left transition-all {startingPlayerMode === 'uniform' ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}"
+          >
+            <span class="text-base font-medium">Gleichverteilt</span>
+            <span class="text-xs mt-0.5 opacity-70">Everyone has the same chance to start</span>
+          </button>
+          <button
+            onclick={() => (startingPlayerMode = 'trickster-disadvantaged')}
+            class="flex flex-col items-start py-3 px-4 rounded-xl text-left transition-all {startingPlayerMode === 'trickster-disadvantaged' ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}"
+          >
+            <span class="text-base font-medium">Trickster less likely to start</span>
+            <span class="text-xs mt-0.5 opacity-70">Civilians are favoured as starting player</span>
+          </button>
+          <button
+            onclick={() => (startingPlayerMode = 'trickster-hint')}
+            class="flex flex-col items-start py-3 px-4 rounded-xl text-left transition-all {startingPlayerMode === 'trickster-hint' ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}"
+          >
+            <span class="text-base font-medium">Trickster gets hint on start</span>
+            <span class="text-xs mt-0.5 opacity-70">If the trickster starts, they receive a hint regardless of hints setting</span>
+          </button>
+        </div>
+
+        {#if startingPlayerMode === 'trickster-disadvantaged'}
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm text-zinc-300 font-medium">Trickster start weight</p>
+              <span class="text-indigo-400 font-bold tabular-nums text-sm">{tricksterStartWeight}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="10"
+              bind:value={tricksterStartWeight}
+              class="w-full accent-indigo-500"
+            />
+            <div class="flex justify-between text-zinc-600 text-xs mt-1">
+              <span>Never starts</span>
+              <span>Equal chance</span>
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
 

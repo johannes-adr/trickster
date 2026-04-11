@@ -21,8 +21,14 @@
 
 <div class="min-h-screen bg-zinc-950 text-white flex flex-col p-6 overflow-y-auto pb-safe-scroll">
   <div class="w-full max-w-sm mx-auto flex flex-col gap-6 py-8">
-    <!-- Win/Loss banner (voting mode only) -->
-    {#if votingEnabled}
+    <!-- Win/Loss banner -->
+    {#if imposters.length === 0}
+      <div class="rounded-3xl p-6 text-center bg-zinc-800 border border-zinc-600">
+        <div class="text-5xl mb-3">🕊️</div>
+        <h2 class="text-3xl font-black text-zinc-200">No Trickster!</h2>
+        <p class="text-sm mt-2 text-zinc-400">The variance kicked in — everyone was a civilian this round</p>
+      </div>
+    {:else if votingEnabled}
       <div
         class="rounded-3xl p-6 text-center {caught
           ? 'bg-emerald-950 border border-emerald-700'
@@ -62,18 +68,20 @@
     {/if}
 
     <!-- Tricksters reveal -->
-    <div class="bg-zinc-900 rounded-2xl p-5">
-      <p class="text-zinc-400 text-xs font-semibold uppercase tracking-widest mb-3">
-        {imposters.length === 1 ? 'The Trickster' : 'The Tricksters'}
-      </p>
-      <div class="flex flex-wrap gap-2">
-        {#each imposters as imposter}
-          <span class="bg-rose-900 text-rose-200 rounded-lg px-3 py-1.5 text-sm font-semibold">
-            🎭 {imposter.name}
-          </span>
-        {/each}
+    {#if imposters.length > 0}
+      <div class="bg-zinc-900 rounded-2xl p-5">
+        <p class="text-zinc-400 text-xs font-semibold uppercase tracking-widest mb-3">
+          {imposters.length === 1 ? 'The Trickster' : 'The Tricksters'}
+        </p>
+        <div class="flex flex-wrap gap-2">
+          {#each imposters as imposter}
+            <span class="bg-rose-900 text-rose-200 rounded-lg px-3 py-1.5 text-sm font-semibold">
+              🎭 {imposter.name}
+            </span>
+          {/each}
+        </div>
       </div>
-    </div>
+    {/if}
 
     <!-- Vote breakdown (voting mode only) -->
     {#if votingEnabled}

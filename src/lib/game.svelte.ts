@@ -1,5 +1,5 @@
 import { pickRandom, shuffleArray } from './parser';
-import type { GameState, Player, Settings, Round, WordEntry } from './types';
+import type { GameState, Player, Settings, Round, WordEntry, StartingPlayerMode } from './types';
 
 class Game {
   state = $state<GameState>('HOME');
@@ -9,6 +9,9 @@ class Game {
     hintsEnabled: true,
     imposterCount: 1,
     votingEnabled: true,
+    tricksterVarianceProbability: 0,
+    startingPlayerMode: 'uniform',
+    tricksterStartWeight: 50,
   });
 
   players = $state<Player[]>([]);
@@ -76,20 +79,38 @@ class Game {
     this.state = 'SET_OPTIONS';
   }
 
-  confirmOptions(hintsEnabled: boolean, imposterCount: number, entries: WordEntry[], votingEnabled: boolean) {
+  confirmOptions(
+    hintsEnabled: boolean,
+    imposterCount: number,
+    entries: WordEntry[],
+    votingEnabled: boolean,
+    tricksterVarianceProbability: number,
+    startingPlayerMode: StartingPlayerMode,
+    tricksterStartWeight: number,
+  ) {
     const max = Math.max(1, this.settings.playerCount - 1);
     this.settings.hintsEnabled = hintsEnabled;
     this.settings.imposterCount = Math.min(Math.max(1, imposterCount), max);
     this.settings.votingEnabled = votingEnabled;
+    this.settings.tricksterVarianceProbability = tricksterVarianceProbability;
+    this.settings.startingPlayerMode = startingPlayerMode;
+    this.settings.tricksterStartWeight = Math.min(Math.max(0, tricksterStartWeight), 100);
     this.wordEntries = entries;
     this._generateAndStart();
   }
 
   private _generateAndStart() {
     const entry = pickRandom(this.wordEntries);
+
+    // Apply variance: re-roll imposter count with configured probability
+    let imposterCount = this.settings.imposterCount;
+    if (this.settings.tricksterVarianceProbability > 0 && Math.random() * 100 < this.settings.tricksterVarianceProbability) {
+      imposterCount = Math.floor(Math.random() * (this.players.length + 1)); // 0 to playerCount
+    }
+
     const shuffled = shuffleArray([...this.players]);
     const imposterSet = new Set(
-      shuffled.slice(0, this.settings.imposterCount).map((p) => p.id)
+      shuffled.slice(0, imposterCount).map((p) => p.id)
     );
 
     this.players = this.players.map((p) => ({
@@ -103,9 +124,32 @@ class Game {
       category: entry.category,
     };
 
-    this.startingPlayer = this.players[Math.floor(Math.random() * this.players.length)];
+    this.startingPlayer = this._pickStartingPlayer();
     this.revealIndex = 0;
     this.state = 'PASS_AROUND';
+  }
+
+  private _pickStartingPlayer(): Player {
+    const mode = this.settings.startingPlayerMode;
+
+    if (mode === 'uniform' || mode === 'trickster-hint') {
+      return this.players[Math.floor(Math.random() * this.players.length)];
+    }
+
+    // trickster-disadvantaged: weighted selection
+    const tricksterWeight = this.settings.tricksterStartWeight / 100;
+    const weights = this.players.map((p) => (p.role === 'imposter' ? tricksterWeight : 1));
+    const total = weights.reduce((a, b) => a + b, 0);
+
+    // Fallback to uniform if all weights are zero (all imposters + weight=0)
+    if (total === 0) return this.players[Math.floor(Math.random() * this.players.length)];
+
+    let r = Math.random() * total;
+    for (let i = 0; i < this.players.length; i++) {
+      r -= weights[i];
+      if (r <= 0) return this.players[i];
+    }
+    return this.players[this.players.length - 1];
   }
 
   revealTrickster() {
@@ -160,7 +204,7 @@ class Game {
     this.revealIndex = 0;
     this.voterIndex = 0;
     this.startingPlayer = null;
-    this.settings = { playerCount: 4, hintsEnabled: true, imposterCount: 1, votingEnabled: true };
+    this.settings = { playerCount: 4, hintsEnabled: true, imposterCount: 1, votingEnabled: true, tricksterVarianceProbability: 0, startingPlayerMode: 'uniform', tricksterStartWeight: 50 };
   }
 }
 
