@@ -3,6 +3,8 @@
 
   let caught = $derived(game.caughtImposters);
   let imposters = $derived(game.imposters);
+  let gerber = $derived(game.gerber);
+  let outcome = $derived(game.outcome);
   let round = $derived(game.round);
   let voteResults = $derived(game.voteResults);
   let mostVotedId = $derived(game.mostVotedPlayerId);
@@ -34,7 +36,24 @@
   <div class="w-full max-w-md mx-auto flex flex-col gap-5 p-6 py-8">
 
     <!-- Win/Loss hero banner -->
-    {#if imposters.length === 0}
+    {#if votingEnabled && outcome === 'gerber'}
+      <div class="relative overflow-hidden rounded-3xl py-12 px-6 text-center bg-[#1a1204] border border-amber-700">
+        {#each confettiPieces as piece, i (i)}
+          <span
+            class="absolute pointer-events-none rounded-sm"
+            style="left: {piece.x}%; top: 0%; width: {piece.size}px; height: {piece.size}px; background: {piece.color}; animation: confettiFall {piece.duration}s {piece.delay}s ease-in forwards; --confetti-drift: {piece.drift}px;"
+          ></span>
+        {/each}
+        <div class="relative">
+          <div class="text-5xl mb-4">🐐</div>
+          <h2 class="text-3xl font-black text-amber-300">Gerber Wins!</h2>
+          <p class="text-sm mt-2 text-amber-500/80">
+            The Gerber got themselves voted out — exactly as planned
+          </p>
+        </div>
+      </div>
+
+    {:else if imposters.length === 0}
       <div class="rounded-3xl py-12 px-6 text-center bg-zinc-800 border border-zinc-600">
         <div class="text-5xl mb-4">🕊️</div>
         <h2 class="text-3xl font-black text-zinc-200">No Trickster!</h2>
@@ -100,6 +119,23 @@
       </div>
     {/if}
 
+    <!-- Gerber reveal -->
+    {#if gerber}
+      <div class="bg-zinc-900 rounded-2xl p-5">
+        <p class="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">
+          The Gerber
+        </p>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="bg-[#1a1204] text-amber-400 rounded-xl px-4 py-2 text-sm font-bold">
+            🐐 {gerber.name}
+          </span>
+          <span class="text-zinc-500 text-xs">
+            {outcome === 'gerber' ? 'got voted out' : 'wanted to be voted out'}
+          </span>
+        </div>
+      </div>
+    {/if}
+
     <!-- Vote breakdown (voting mode only) -->
     {#if votingEnabled}
       <div class="bg-zinc-900 rounded-2xl p-5">
@@ -113,10 +149,12 @@
             <div
               class="flex items-center gap-3 py-2.5 px-3 rounded-xl {player.id === mostVotedId ? 'bg-zinc-800' : ''}"
             >
-              <span class="text-sm font-semibold flex-1 {player.role === 'imposter' ? 'text-[#8a5252]' : 'text-white'}">
+              <span class="text-sm font-semibold flex-1 {player.role === 'imposter' ? 'text-[#8a5252]' : player.role === 'gerber' ? 'text-amber-400' : 'text-white'}">
                 {player.name}
                 {#if player.role === 'imposter'}
                   <span class="text-[#4a2a2a] text-xs ml-1">(trickster)</span>
+                {:else if player.role === 'gerber'}
+                  <span class="text-amber-700 text-xs ml-1">(gerber)</span>
                 {/if}
               </span>
               <span class="text-zinc-500 text-xs">{voters.join(', ')}</span>

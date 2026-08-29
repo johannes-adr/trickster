@@ -124,6 +124,40 @@
             </div>
           </div>
 
+        {:else if player.role === 'gerber'}
+          <div class="min-h-screen text-white flex flex-col" style="background: #100b02;">
+            <div class="flex-1 flex flex-col items-center justify-center gap-5 px-8 text-center">
+              <div class="text-7xl">🐐</div>
+              <p class="text-amber-500/70 text-xs font-semibold uppercase tracking-widest">Your role</p>
+              <div>
+                <p class="text-2xl font-bold text-amber-500/60">You are the</p>
+                <h2 class="text-6xl font-black text-amber-300 mt-1">GERBER</h2>
+              </div>
+              <div class="mt-1 w-full bg-[#1a1204] rounded-2xl border border-[#3a2a08] p-5">
+                <p class="text-amber-500/70 text-xs font-semibold uppercase tracking-widest mb-2">
+                  {game.round?.category}
+                </p>
+                <p
+                  class="text-4xl font-black text-white wrap-break-word w-full"
+                  style="word-break: break-word;"
+                >
+                  {game.round?.secretWord}
+                </p>
+              </div>
+              <p class="text-amber-500/80 text-sm">
+                You know the word — now make everyone vote for you. You win if you get voted out!
+              </p>
+            </div>
+            <div class="p-6 pb-safe">
+              <button
+                onclick={hideAndPass}
+                class="w-full bg-[#2a1e05] hover:bg-[#3a2a08] active:scale-95 transition-all text-white font-bold text-lg py-4 rounded-2xl"
+              >
+                Hide & Pass →
+              </button>
+            </div>
+          </div>
+
         {:else}
           <div class="min-h-screen text-white flex flex-col" style="background: #0d1117;">
             <div class="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">

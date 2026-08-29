@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { slide } from "svelte/transition";
   import { SvelteSet } from "svelte/reactivity";
-  import { game } from "$lib/game.svelte";
+  import { game, maxImposterCount } from "$lib/game.svelte";
   import { parseWords } from "$lib/parser";
   import type { WordEntry, StartingPlayerMode } from "$lib/types";
   import { getCookie, setCookie } from "$lib/cookies";
@@ -13,8 +13,10 @@
   let tricksterVarianceProbability = $state(game.settings.tricksterVarianceProbability);
   let startingPlayerMode = $state<StartingPlayerMode>(game.settings.startingPlayerMode);
   let tricksterStartWeight = $state(game.settings.tricksterStartWeight);
+  let gerberEnabled = $state(game.settings.gerberEnabled);
 
-  const maxImposters = Math.max(1, game.settings.playerCount - 1);
+  // The Gerber occupies a seat, so it lowers the ceiling for tricksters
+  const maxImposters = $derived(maxImposterCount(game.settings.playerCount, gerberEnabled));
 
   type Pack = { name: string; url: string };
 
@@ -115,6 +117,11 @@
     else selectedCategories.add(cat);
   }
 
+  function toggleGerber() {
+    gerberEnabled = !gerberEnabled;
+    if (imposterCount > maxImposters) imposterCount = maxImposters;
+  }
+
   function toggleAll() {
     if (allSelected) {
       selectedCategories.clear();
@@ -137,7 +144,16 @@
 
   function handleStart() {
     setCookie("imposter_wordpack_url", activeUrl);
-    game.confirmOptions(hintsEnabled, imposterCount, filteredEntries, votingEnabled, tricksterVarianceProbability, startingPlayerMode, tricksterStartWeight);
+    game.confirmOptions({
+      hintsEnabled,
+      imposterCount,
+      entries: filteredEntries,
+      votingEnabled,
+      tricksterVarianceProbability,
+      startingPlayerMode,
+      tricksterStartWeight,
+      gerberEnabled,
+    });
   }
 </script>
 
@@ -292,6 +308,30 @@
               aria-label="Toggle voting"
             >
               <span class="absolute top-1 left-0 w-6 h-6 rounded-full bg-white shadow transition-transform {votingEnabled ? 'translate-x-7' : 'translate-x-1'}"></span>
+            </button>
+          </div>
+
+          <!-- Gerber toggle -->
+          <div class="flex items-center justify-between px-5 py-4">
+            <div>
+              <p class="font-semibold">Gerber</p>
+              <p class="text-zinc-400 text-sm mt-0.5">
+                Knows the word, but wins by getting voted out
+              </p>
+              {#if gerberEnabled && !votingEnabled}
+                <p class="text-[#8a5252] text-xs mt-1.5">
+                  ⚠️ The Gerber can only win with voting enabled
+                </p>
+              {/if}
+            </div>
+            <button
+              onclick={toggleGerber}
+              class="relative w-14 h-8 rounded-full transition-colors shrink-0 {gerberEnabled ? 'bg-amber-500' : 'bg-zinc-700'}"
+              role="switch"
+              aria-checked={gerberEnabled}
+              aria-label="Toggle Gerber"
+            >
+              <span class="absolute top-1 left-0 w-6 h-6 rounded-full bg-white shadow transition-transform {gerberEnabled ? 'translate-x-7' : 'translate-x-1'}"></span>
             </button>
           </div>
         </div>

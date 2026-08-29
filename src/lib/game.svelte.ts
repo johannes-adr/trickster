@@ -1,18 +1,26 @@
 import { pickRandom, shuffleArray } from './parser';
-import type { GameState, Player, Settings, Round, WordEntry, StartingPlayerMode } from './types';
+import type { GameState, Player, Settings, Round, WordEntry, StartingPlayerMode, Outcome } from './types';
+
+/** Tricksters must leave room for at least one other player — and for the Gerber, if enabled. */
+export function maxImposterCount(playerCount: number, gerberEnabled: boolean): number {
+  return Math.max(1, playerCount - (gerberEnabled ? 2 : 1));
+}
+
+const defaultSettings = (): Settings => ({
+  playerCount: 4,
+  hintsEnabled: true,
+  imposterCount: 1,
+  votingEnabled: true,
+  tricksterVarianceProbability: 0,
+  startingPlayerMode: 'uniform',
+  tricksterStartWeight: 50,
+  gerberEnabled: false,
+});
 
 class Game {
   state = $state<GameState>('HOME');
 
-  settings = $state<Settings>({
-    playerCount: 4,
-    hintsEnabled: true,
-    imposterCount: 1,
-    votingEnabled: true,
-    tricksterVarianceProbability: 0,
-    startingPlayerMode: 'uniform',
-    tricksterStartWeight: 50,
-  });
+  settings = $state<Settings>(defaultSettings());
 
   players = $state<Player[]>([]);
   round = $state<Round | null>(null);
@@ -32,6 +40,10 @@ class Game {
 
   get imposters(): Player[] {
     return this.players.filter((p) => p.role === 'imposter');
+  }
+
+  get gerber(): Player | null {
+    return this.players.find((p) => p.role === 'gerber') ?? null;
   }
 
   get voteResults(): Record<number, number> {
@@ -55,11 +67,25 @@ class Game {
     return maxId;
   }
 
-  get caughtImposters(): boolean {
+  get mostVotedPlayer(): Player | null {
     const votedId = this.mostVotedPlayerId;
-    if (votedId === null) return false;
-    const voted = this.players.find((p) => p.id === votedId);
-    return voted?.role === 'imposter';
+    if (votedId === null) return null;
+    return this.players.find((p) => p.id === votedId) ?? null;
+  }
+
+  get caughtImposters(): boolean {
+    return this.mostVotedPlayer?.role === 'imposter';
+  }
+
+  /** The Gerber wins the moment the group votes them out. */
+  get gerberWins(): boolean {
+    return this.mostVotedPlayer?.role === 'gerber';
+  }
+
+  get outcome(): Outcome {
+    if (this.gerberWins) return 'gerber';
+    if (this.imposters.length === 0) return 'no-trickster';
+    return this.caughtImposters ? 'civilians' : 'trickster';
   }
 
   startSetup() {
@@ -79,23 +105,27 @@ class Game {
     this.state = 'SET_OPTIONS';
   }
 
-  confirmOptions(
-    hintsEnabled: boolean,
-    imposterCount: number,
-    entries: WordEntry[],
-    votingEnabled: boolean,
-    tricksterVarianceProbability: number,
-    startingPlayerMode: StartingPlayerMode,
-    tricksterStartWeight: number,
-  ) {
-    const max = Math.max(1, this.settings.playerCount - 1);
-    this.settings.hintsEnabled = hintsEnabled;
-    this.settings.imposterCount = Math.min(Math.max(1, imposterCount), max);
-    this.settings.votingEnabled = votingEnabled;
-    this.settings.tricksterVarianceProbability = tricksterVarianceProbability;
-    this.settings.startingPlayerMode = startingPlayerMode;
-    this.settings.tricksterStartWeight = Math.min(Math.max(0, tricksterStartWeight), 100);
-    this.wordEntries = entries;
+  confirmOptions(options: {
+    hintsEnabled: boolean;
+    imposterCount: number;
+    entries: WordEntry[];
+    votingEnabled: boolean;
+    tricksterVarianceProbability: number;
+    startingPlayerMode: StartingPlayerMode;
+    tricksterStartWeight: number;
+    gerberEnabled: boolean;
+  }) {
+    this.settings.gerberEnabled = options.gerberEnabled;
+    this.settings.hintsEnabled = options.hintsEnabled;
+    this.settings.imposterCount = Math.min(
+      Math.max(1, options.imposterCount),
+      maxImposterCount(this.settings.playerCount, options.gerberEnabled),
+    );
+    this.settings.votingEnabled = options.votingEnabled;
+    this.settings.tricksterVarianceProbability = options.tricksterVarianceProbability;
+    this.settings.startingPlayerMode = options.startingPlayerMode;
+    this.settings.tricksterStartWeight = Math.min(Math.max(0, options.tricksterStartWeight), 100);
+    this.wordEntries = options.entries;
     this._generateAndStart();
   }
 
@@ -108,14 +138,23 @@ class Game {
       imposterCount = Math.floor(Math.random() * (this.players.length + 1)); // 0 to playerCount
     }
 
+    // Keep a seat free for the Gerber, who is never a trickster
+    const gerberEnabled = this.settings.gerberEnabled && this.players.length > 1;
+    imposterCount = Math.min(imposterCount, gerberEnabled ? this.players.length - 1 : this.players.length);
+
     const shuffled = shuffleArray([...this.players]);
-    const imposterSet = new Set(
-      shuffled.slice(0, imposterCount).map((p) => p.id)
-    );
+    const imposterSet = new Set(shuffled.slice(0, imposterCount).map((p) => p.id));
+    // The shuffle already randomised the order, so the seat right after the
+    // tricksters is a uniformly random pick among the remaining players.
+    const gerberId = gerberEnabled ? shuffled[imposterCount].id : null;
 
     this.players = this.players.map((p) => ({
       ...p,
-      role: imposterSet.has(p.id) ? ('imposter' as const) : ('civilian' as const),
+      role: imposterSet.has(p.id)
+        ? ('imposter' as const)
+        : p.id === gerberId
+          ? ('gerber' as const)
+          : ('civilian' as const),
     }));
 
     this.round = {
@@ -204,7 +243,7 @@ class Game {
     this.revealIndex = 0;
     this.voterIndex = 0;
     this.startingPlayer = null;
-    this.settings = { playerCount: 4, hintsEnabled: true, imposterCount: 1, votingEnabled: true, tricksterVarianceProbability: 0, startingPlayerMode: 'uniform', tricksterStartWeight: 50 };
+    this.settings = defaultSettings();
   }
 }
 

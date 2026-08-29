@@ -8,7 +8,7 @@ export type GameState =
   | 'VOTING'
   | 'RESULTS';
 
-export type PlayerRole = 'civilian' | 'imposter';
+export type PlayerRole = 'civilian' | 'imposter' | 'gerber';
 
 export type StartingPlayerMode =
   | 'uniform'
@@ -31,7 +31,12 @@ export interface Settings {
   startingPlayerMode: StartingPlayerMode;
   /** 0–100: relative weight of a trickster being picked as starting player (trickster-disadvantaged mode) */
   tricksterStartWeight: number;
+  /** Adds a Gerber: knows the word, but wins by getting voted out */
+  gerberEnabled: boolean;
 }
+
+/** Who won the round */
+export type Outcome = 'gerber' | 'civilians' | 'trickster' | 'no-trickster';
 
 export interface WordEntry {
   category: string;
