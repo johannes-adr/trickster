@@ -3,7 +3,7 @@
 
   let caught = $derived(game.caughtImposters);
   let imposters = $derived(game.imposters);
-  let gerber = $derived(game.gerber);
+  let gerbers = $derived(game.gerbers);
   let outcome = $derived(game.outcome);
   let round = $derived(game.round);
   let voteResults = $derived(game.voteResults);
@@ -46,7 +46,9 @@
         {/each}
         <div class="relative">
           <div class="text-5xl mb-4">🐐</div>
-          <h2 class="text-3xl font-black text-amber-300">Gerber Wins!</h2>
+          <h2 class="text-3xl font-black text-amber-300">
+            {game.mostVotedPlayer?.name} Wins!
+          </h2>
           <p class="text-sm mt-2 text-amber-500/80">
             The Gerber got themselves voted out — exactly as planned
           </p>
@@ -119,20 +121,24 @@
       </div>
     {/if}
 
-    <!-- Gerber reveal -->
-    {#if gerber}
+    <!-- Gerbers reveal -->
+    {#if gerbers.length > 0}
       <div class="bg-zinc-900 rounded-2xl p-5">
         <p class="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">
-          The Gerber
+          {gerbers.length === 1 ? 'The Gerber' : 'The Gerbers'}
         </p>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="bg-[#1a1204] text-amber-400 rounded-xl px-4 py-2 text-sm font-bold">
-            🐐 {gerber.name}
-          </span>
-          <span class="text-zinc-500 text-xs">
-            {outcome === 'gerber' ? 'got voted out' : 'wanted to be voted out'}
-          </span>
+        <div class="flex flex-wrap gap-2">
+          {#each gerbers as g (g.id)}
+            <span class="bg-[#1a1204] text-amber-400 rounded-xl px-4 py-2 text-sm font-bold">
+              🐐 {g.name}{g.id === mostVotedId ? ' ✓' : ''}
+            </span>
+          {/each}
         </div>
+        <p class="text-zinc-500 text-xs mt-3">
+          {outcome === 'gerber'
+            ? 'Wanted to be voted out — and pulled it off'
+            : 'Wanted to be voted out, but nobody fell for it'}
+        </p>
       </div>
     {/if}
 

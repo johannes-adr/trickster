@@ -31,8 +31,10 @@ export interface Settings {
   startingPlayerMode: StartingPlayerMode;
   /** 0–100: relative weight of a trickster being picked as starting player (trickster-disadvantaged mode) */
   tricksterStartWeight: number;
-  /** Adds a Gerber: knows the word, but wins by getting voted out */
+  /** Adds Gerbers: they know the word, but win by getting voted out */
   gerberEnabled: boolean;
+  /** How many Gerbers per round (only used when gerberEnabled) */
+  gerberCount: number;
 }
 
 /** Who won the round */

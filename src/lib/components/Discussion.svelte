@@ -37,7 +37,11 @@
       {#if game.settings.gerberEnabled}
         <div class="flex gap-3 text-sm text-amber-400">
           <span>🐐</span>
-          <span>A Gerber is in play — they know the word and want your votes</span>
+          <span>
+            {game.settings.gerberCount === 1
+              ? 'A Gerber is in play — they know the word and want your votes'
+              : `${game.settings.gerberCount} Gerbers are in play — they know the word and want your votes`}
+          </span>
         </div>
       {/if}
     </div>

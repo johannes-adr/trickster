@@ -1,9 +1,18 @@
 import { pickRandom, shuffleArray } from './parser';
 import type { GameState, Player, Settings, Round, WordEntry, StartingPlayerMode, Outcome } from './types';
 
-/** Tricksters must leave room for at least one other player — and for the Gerber, if enabled. */
-export function maxImposterCount(playerCount: number, gerberEnabled: boolean): number {
-  return Math.max(1, playerCount - (gerberEnabled ? 2 : 1));
+/** Tricksters must leave room for one civilian — and for the Gerbers, if enabled. */
+export function maxImposterCount(
+  playerCount: number,
+  gerberEnabled: boolean,
+  gerberCount: number,
+): number {
+  return Math.max(1, playerCount - (gerberEnabled ? gerberCount : 0) - 1);
+}
+
+/** Gerbers must leave room for at least one trickster and one civilian. */
+export function maxGerberCount(playerCount: number): number {
+  return Math.max(1, playerCount - 2);
 }
 
 const defaultSettings = (): Settings => ({
@@ -15,6 +24,7 @@ const defaultSettings = (): Settings => ({
   startingPlayerMode: 'uniform',
   tricksterStartWeight: 50,
   gerberEnabled: false,
+  gerberCount: 1,
 });
 
 class Game {
@@ -42,8 +52,8 @@ class Game {
     return this.players.filter((p) => p.role === 'imposter');
   }
 
-  get gerber(): Player | null {
-    return this.players.find((p) => p.role === 'gerber') ?? null;
+  get gerbers(): Player[] {
+    return this.players.filter((p) => p.role === 'gerber');
   }
 
   get voteResults(): Record<number, number> {
@@ -77,7 +87,7 @@ class Game {
     return this.mostVotedPlayer?.role === 'imposter';
   }
 
-  /** The Gerber wins the moment the group votes them out. */
+  /** A Gerber wins the moment the group votes them out. */
   get gerberWins(): boolean {
     return this.mostVotedPlayer?.role === 'gerber';
   }
@@ -114,12 +124,18 @@ class Game {
     startingPlayerMode: StartingPlayerMode;
     tricksterStartWeight: number;
     gerberEnabled: boolean;
+    gerberCount: number;
   }) {
+    const { playerCount } = this.settings;
     this.settings.gerberEnabled = options.gerberEnabled;
+    this.settings.gerberCount = Math.min(
+      Math.max(1, options.gerberCount),
+      maxGerberCount(playerCount),
+    );
     this.settings.hintsEnabled = options.hintsEnabled;
     this.settings.imposterCount = Math.min(
       Math.max(1, options.imposterCount),
-      maxImposterCount(this.settings.playerCount, options.gerberEnabled),
+      maxImposterCount(playerCount, options.gerberEnabled, this.settings.gerberCount),
     );
     this.settings.votingEnabled = options.votingEnabled;
     this.settings.tricksterVarianceProbability = options.tricksterVarianceProbability;
@@ -138,21 +154,26 @@ class Game {
       imposterCount = Math.floor(Math.random() * (this.players.length + 1)); // 0 to playerCount
     }
 
-    // Keep a seat free for the Gerber, who is never a trickster
-    const gerberEnabled = this.settings.gerberEnabled && this.players.length > 1;
-    imposterCount = Math.min(imposterCount, gerberEnabled ? this.players.length - 1 : this.players.length);
+    // Gerbers keep their seats — they are never tricksters, so the (possibly
+    // re-rolled) trickster count yields to them.
+    const gerberCount = this.settings.gerberEnabled
+      ? Math.min(this.settings.gerberCount, this.players.length - 1)
+      : 0;
+    imposterCount = Math.min(imposterCount, this.players.length - gerberCount);
 
     const shuffled = shuffleArray([...this.players]);
     const imposterSet = new Set(shuffled.slice(0, imposterCount).map((p) => p.id));
-    // The shuffle already randomised the order, so the seat right after the
-    // tricksters is a uniformly random pick among the remaining players.
-    const gerberId = gerberEnabled ? shuffled[imposterCount].id : null;
+    // The shuffle already randomised the order, so the seats right after the
+    // tricksters are a uniformly random pick among the remaining players.
+    const gerberSet = new Set(
+      shuffled.slice(imposterCount, imposterCount + gerberCount).map((p) => p.id),
+    );
 
     this.players = this.players.map((p) => ({
       ...p,
       role: imposterSet.has(p.id)
         ? ('imposter' as const)
-        : p.id === gerberId
+        : gerberSet.has(p.id)
           ? ('gerber' as const)
           : ('civilian' as const),
     }));

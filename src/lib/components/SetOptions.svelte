@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { slide } from "svelte/transition";
   import { SvelteSet } from "svelte/reactivity";
-  import { game, maxImposterCount } from "$lib/game.svelte";
+  import { game, maxImposterCount, maxGerberCount } from "$lib/game.svelte";
   import { parseWords } from "$lib/parser";
   import type { WordEntry, StartingPlayerMode } from "$lib/types";
   import { getCookie, setCookie } from "$lib/cookies";
@@ -14,9 +14,18 @@
   let startingPlayerMode = $state<StartingPlayerMode>(game.settings.startingPlayerMode);
   let tricksterStartWeight = $state(game.settings.tricksterStartWeight);
   let gerberEnabled = $state(game.settings.gerberEnabled);
+  let gerberCount = $state(game.settings.gerberCount);
 
-  // The Gerber occupies a seat, so it lowers the ceiling for tricksters
-  const maxImposters = $derived(maxImposterCount(game.settings.playerCount, gerberEnabled));
+  const maxGerbers = maxGerberCount(game.settings.playerCount);
+  // Gerbers occupy seats, so they lower the ceiling for tricksters
+  const maxImposters = $derived(
+    maxImposterCount(game.settings.playerCount, gerberEnabled, gerberCount),
+  );
+
+  // Gerbers take precedence: shrink the trickster count when they crowd it out
+  $effect(() => {
+    if (imposterCount > maxImposters) imposterCount = maxImposters;
+  });
 
   type Pack = { name: string; url: string };
 
@@ -117,11 +126,6 @@
     else selectedCategories.add(cat);
   }
 
-  function toggleGerber() {
-    gerberEnabled = !gerberEnabled;
-    if (imposterCount > maxImposters) imposterCount = maxImposters;
-  }
-
   function toggleAll() {
     if (allSelected) {
       selectedCategories.clear();
@@ -153,6 +157,7 @@
       startingPlayerMode,
       tricksterStartWeight,
       gerberEnabled,
+      gerberCount,
     });
   }
 </script>
@@ -320,12 +325,12 @@
               </p>
               {#if gerberEnabled && !votingEnabled}
                 <p class="text-[#8a5252] text-xs mt-1.5">
-                  ⚠️ The Gerber can only win with voting enabled
+                  ⚠️ Gerbers can only win with voting enabled
                 </p>
               {/if}
             </div>
             <button
-              onclick={toggleGerber}
+              onclick={() => (gerberEnabled = !gerberEnabled)}
               class="relative w-14 h-8 rounded-full transition-colors shrink-0 {gerberEnabled ? 'bg-amber-500' : 'bg-zinc-700'}"
               role="switch"
               aria-checked={gerberEnabled}
@@ -334,6 +339,33 @@
               <span class="absolute top-1 left-0 w-6 h-6 rounded-full bg-white shadow transition-transform {gerberEnabled ? 'translate-x-7' : 'translate-x-1'}"></span>
             </button>
           </div>
+
+          <!-- Number of Gerbers -->
+          {#if gerberEnabled}
+            <div transition:slide={{ duration: 200 }} class="px-5 py-4">
+              <div class="flex items-center justify-between mb-0.5">
+                <p class="font-semibold">Number of Gerbers</p>
+                <span class="text-amber-400 font-bold tabular-nums">{gerberCount}</span>
+              </div>
+              <p class="text-zinc-400 text-sm mb-4">
+                How many Gerbers per round (max {maxGerbers})
+              </p>
+              <input
+                type="range"
+                min="1"
+                max={maxGerbers}
+                step="1"
+                bind:value={gerberCount}
+                disabled={maxGerbers === 1}
+                class="w-full accent-amber-500 disabled:opacity-40"
+                aria-label="Number of Gerbers"
+              />
+              <div class="flex justify-between text-zinc-600 text-xs mt-1">
+                <span>1</span>
+                <span>{maxGerbers}</span>
+              </div>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
@@ -355,7 +387,9 @@
           <!-- Trickster count -->
           <div class="px-5 py-4">
             <p class="font-semibold mb-0.5">Number of Tricksters</p>
-            <p class="text-zinc-400 text-sm mb-4">How many tricksters per round</p>
+            <p class="text-zinc-400 text-sm mb-4">
+              How many tricksters per round (max {maxImposters})
+            </p>
             <div class="flex items-center justify-between">
               <button
                 onclick={decrementImposters}
