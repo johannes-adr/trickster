@@ -34,6 +34,12 @@
         <span>🤫</span>
         <span>Never say the secret word directly</span>
       </div>
+      {#if game.settings.gerberEnabled}
+        <div class="flex gap-3 text-sm text-amber-400">
+          <span>🐐</span>
+          <span>A Gerber is in play — they know the word and want your votes</span>
+        </div>
+      {/if}
     </div>
 
     <!-- Suspect grid -->
